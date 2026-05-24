@@ -6,7 +6,9 @@ __pycache__/
 .env
 venv/
 .env.*
+
 # macOS
 .DS_Store
-# Streamlit
-.streamlit/
+
+# Streamlit — ignore secrets only, NOT config.toml
+.streamlit/secrets.toml

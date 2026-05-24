@@ -1,26 +1,33 @@
 import pandas as pd
+import streamlit as st
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load your dataset
-movies = pd.read_csv('movies.csv')
 
-# Make sure your CSV has 'title', 'genres', 'overview' columns
-movies['overview'] = movies['overview'].fillna('')
-movies['genres'] = movies['genres'].fillna('')
+@st.cache_resource(show_spinner="Loading movie data...")
+def load_model():
+    """Load dataset and build similarity matrix once, cached for the session."""
+    movies = pd.read_csv('movies.csv')
 
-# Combine genres + overview
-movies['tags'] = movies['overview'] + ' ' + movies['genres']
+    movies['overview'] = movies['overview'].fillna('')
+    movies['genres'] = movies['genres'].fillna('')
 
-# Convert text to vectors
-cv = CountVectorizer(max_features=5000, stop_words='english')
-vectors = cv.fit_transform(movies['tags']).toarray()
+    # Combine genres + overview into tags
+    movies['tags'] = movies['overview'] + ' ' + movies['genres']
 
-# Calculate cosine similarity
-similarity = cosine_similarity(vectors)
+    # Convert text to vectors
+    cv = CountVectorizer(max_features=5000, stop_words='english')
+    vectors = cv.fit_transform(movies['tags']).toarray()
 
-# Function to recommend movies
+    # Calculate cosine similarity matrix
+    similarity = cosine_similarity(vectors)
+
+    return movies, similarity
+
+
 def recommend(movie):
+    movies, similarity = load_model()
+
     movie = movie.lower().strip()
     movie_index = None
     for i, title in enumerate(movies['title'].str.lower()):
