@@ -1,36 +1,28 @@
-import pandas as pd
+import pickle
+import numpy as np
 import streamlit as st
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 @st.cache_resource(show_spinner="Loading movie data...")
 def load_model():
-    """Load dataset and build similarity matrix once, cached for the session."""
-    movies = pd.read_csv('movies.csv')
+    """Load precomputed similarity data — instant startup, no heavy computation."""
+    import pandas as pd
 
-    movies['overview'] = movies['overview'].fillna('')
-    movies['genres'] = movies['genres'].fillna('')
+    with open('movies_slim.pkl', 'rb') as f:
+        movies = pickle.load(f)
 
-    # Combine genres + overview into tags
-    movies['tags'] = movies['overview'] + ' ' + movies['genres']
+    top10 = np.load('similarity_top10.npy')
 
-    # Convert text to vectors
-    cv = CountVectorizer(max_features=5000, stop_words='english')
-    vectors = cv.fit_transform(movies['tags']).toarray()
-
-    # Calculate cosine similarity matrix
-    similarity = cosine_similarity(vectors)
-
-    return movies, similarity
+    return movies, top10
 
 
 def recommend(movie):
-    movies, similarity = load_model()
+    movies, top10 = load_model()
 
     movie = movie.lower().strip()
     movie_index = None
-    for i, title in enumerate(movies['title'].str.lower()):
+    titles_lower = movies['title'].str.lower().tolist()
+    for i, title in enumerate(titles_lower):
         if movie == title:
             movie_index = i
             break
@@ -38,17 +30,14 @@ def recommend(movie):
     if movie_index is None:
         return []
 
-    distances = similarity[movie_index]
-    movie_list = sorted(
-        list(enumerate(distances)), reverse=True, key=lambda x: x[1]
-    )[1:6]  # top 5 similar movies
+    similar_indices = top10[movie_index]
 
     recommended = []
-    for i in movie_list:
+    for i in similar_indices:
         data = {
-            "title": movies.iloc[i[0]].title,
-            "genre": movies.iloc[i[0]].genres,
-            "overview": movies.iloc[i[0]].overview,
+            "title": movies.iloc[int(i)]['title'],
+            "genre": movies.iloc[int(i)]['genres'],
+            "overview": movies.iloc[int(i)]['overview'],
         }
         recommended.append(data)
 

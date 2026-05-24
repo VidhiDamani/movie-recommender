@@ -12,3 +12,6 @@ venv/
 
 # Streamlit — ignore secrets only, NOT config.toml
 .streamlit/secrets.toml
+
+# Dev-only scripts (not needed on cloud)
+precompute.py
