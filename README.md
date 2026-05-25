@@ -1,6 +1,7 @@
 # 🎬 Movie Recommender System  
 
 > *“Because sometimes… picking the next movie is harder than watching one.”* 🍿
+
 > Link: https://movie-recommender-cos.streamlit.app/
 
 Welcome to the **Movie Recommender System** — a simple, elegant, and interactive app built using **Streamlit** and **Python** that helps you discover movies similar to your favorites.  
