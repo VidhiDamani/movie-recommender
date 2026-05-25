@@ -30,7 +30,7 @@ def recommend(movie):
     if movie_index is None:
         return []
 
-    similar_indices = top10[movie_index]
+    similar_indices = top10[movie_index][:5]  # top 5 only
 
     recommended = []
     for i in similar_indices:
